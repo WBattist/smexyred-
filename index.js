@@ -12,7 +12,7 @@ const server = http.createServer();
 const app = express(server);
 const __dirname = process.cwd();
 const bareServer = createBareServer("/bare/");
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -119,7 +119,7 @@ server.on("listening", () => {
   const address = server.address();
   var theme = chalk.hex("#00FF7F");
   var host = chalk.hex("0d52bd");
-  console.log(`Listening to ${chalk.bold(theme("Light"))} on:`);
+  console.log(`Listening to ${chalk.bold(theme("anoying twizler"))} on:`);
 
   console.log(`  ${chalk.bold(host("Local System:"))}            http://${address.family === "IPv6" ? `[${address.address}]` : addr.address}${address.port === 80 ? "" : ":" + chalk.bold(address.port)}`);
 

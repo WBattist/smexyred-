@@ -1,5 +1,5 @@
 {
-  "name": "smexyred",
+  "name": "twizuwu",
   "version": "1.0.0",
   "type": "module",
   "engines": {
@@ -9,7 +9,7 @@
   "scripts": {
     "start": "node index.js"
   },
-  "author": "@Twizzler",
+  "author": "twizzler",
   "license": "GPL-3.0-or-later",
   "dependencies": {
     "@tomphttp/bare-server-node": "2.0.3",
