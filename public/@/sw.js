@@ -1,14 +1,75 @@
-/*global UVServiceWorker,__uv$config*/
+/* global UVServiceWorker, __uv$config */
+
 /*
- * Stock service worker script.
- * Users can provide their own sw.js if they need to extend the functionality of the service worker.
- * Ideally, this will be registered under the scope in uv.config.js so it will not need to be modified.
- * However, if a user changes the location of uv.bundle.js/uv.config.js or sw.js is not relative to them, they will need to modify this script locally.
+ * Optimized service worker script.
+ * Register this script under the scope in uv.config.js.
  */
+
 importScripts('/@/bundle.js');
 importScripts('/@/config.js');
-importScripts(__uv$config.sw || '/@/sw.js');
+
+// Use __uv$config.sw if available, otherwise fallback to '/@/sw.js'
+const swScript = __uv$config.sw || '/@/sw.js';
+importScripts(swScript);
 
 const sw = new UVServiceWorker();
 
-self.addEventListener('fetch', (event) => event.respondWith(sw.fetch(event)));
+// Implement caching strategies
+const CACHE_NAME = 'uv-cache-v1';
+const urlsToCache = [
+  '/',
+  '/index.html',
+  '/@/bundle.js',
+  '/@/config.js',
+  swScript,
+];
+
+// Install event to cache necessary files
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+// Activate event to manage old caches
+self.addEventListener('activate', (event) => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then((cacheNames) => 
+      Promise.all(
+        cacheNames.map((cacheName) => {
+          if (!cacheWhitelist.includes(cacheName)) {
+            return caches.delete(cacheName);
+          }
+        })
+      )
+    )
+  );
+});
+
+// Fetch event to serve cached content and handle errors
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        if (response) {
+          return response; // Serve from cache
+        }
+        return fetch(event.request)
+          .then((networkResponse) => {
+            if (!networkResponse || networkResponse.status !== 200) {
+              return networkResponse;
+            }
+            // Cache the new response
+            const responseClone = networkResponse.clone();
+            caches.open(CACHE_NAME)
+              .then((cache) => cache.put(event.request, responseClone));
+            return networkResponse;
+          });
+      }).catch(() => {
+        // Handle errors (e.g., offline scenarios)
+        return caches.match('/offline.html'); // Serve an offline page or fallback content
+      })
+  );
+});
